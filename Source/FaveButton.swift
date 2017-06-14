@@ -23,8 +23,34 @@
 // THE SOFTWARE.
 
 import UIKit
+import Foundation
 
-
+extension UIImage {
+    
+    func imageWithSize(size:CGSize) -> UIImage
+    {
+        var scaledImageRect = CGRect.zero;
+        
+        let aspectWidth:CGFloat = size.width / self.size.width;
+        let aspectHeight:CGFloat = size.height / self.size.height;
+        let aspectRatio:CGFloat = max(aspectWidth, aspectHeight);
+        
+        scaledImageRect.size.width = self.size.width * aspectRatio;
+        scaledImageRect.size.height = self.size.height * aspectRatio;
+        scaledImageRect.origin.x = (size.width - scaledImageRect.size.width) / 2.0;
+        scaledImageRect.origin.y = (size.height - scaledImageRect.size.height) / 2.0;
+        
+        UIGraphicsBeginImageContextWithOptions(size, false, 0);
+        
+        self.draw(in: scaledImageRect);
+        
+        let scaledImage = UIGraphicsGetImageFromCurrentImageContext();
+        UIGraphicsEndImageContext();
+        
+        return scaledImage!;
+    }
+    
+}
 
 public typealias DotColors = (first: UIColor, second: UIColor)
 
@@ -61,7 +87,12 @@ open class FaveButton: UIButton {
     
     fileprivate(set) var sparkGroupCount: Int = 7
     
-    fileprivate var faveIconImage:UIImage?
+    fileprivate var faveIconImage:UIImage? {
+        didSet {
+            let newImage = faveIconImage?.imageWithSize(size: CGSize(width: self.bounds.width, height: self.bounds.height))
+            faveIconImage = newImage
+        }
+    }
     fileprivate var faveIcon: FaveIcon!
     
     
@@ -105,9 +136,9 @@ extension FaveButton{
             fatalError("please provide an image for normal state.")
         }
         
-        setImage(UIImage(), for: UIControlState())
-        setImage(UIImage(), for: .selected)
-        setTitle(nil, for: UIControlState())
+        setImage(UIImage().imageWithSize(size: CGSize(width: self.bounds.width, height: self.bounds.height)), for: .normal)
+        setImage(UIImage().imageWithSize(size: CGSize(width: self.bounds.width, height: self.bounds.height)), for: .selected)
+        setTitle(nil, for: UIControlState.normal)
         setTitle(nil, for: .selected)
         
         faveIcon  = createFaveIcon(faveIconImage)
